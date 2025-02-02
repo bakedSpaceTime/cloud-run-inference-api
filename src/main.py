@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
@@ -58,11 +58,17 @@ class InferenceRequest(BaseModel):
     
 @app.post("/v1/inference")
 async def inference(request: InferenceRequest):
-    load_model()  # Ensure model is loaded
-    inputs = tokenizer(request.prompt, return_tensors="pt").to(model.device)
-    outputs = model.generate(inputs.input_ids, max_new_tokens=request.max_tokens)
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return {"response": response}
+    try:
+        load_model()  # Ensure model is loaded
+        inputs = tokenizer(request.prompt, return_tensors="pt").to(model.device)
+        outputs = model.generate(inputs.input_ids, max_new_tokens=request.max_tokens)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return {"response": response}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"Inference failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")
 
 @app.get("/v1/sanity-check")
 async def sanity_check():

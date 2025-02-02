@@ -4,7 +4,6 @@
 
 ![image](https://github.com/user-attachments/assets/1d7f899e-e19e-43f5-8157-ea7c6c80dd41)
 
-
 ### Description
 
 A FastAPI-based service for running inference with DeepSeek language models. This API provides a simple interface for text generation using DeepSeek's 7B model.
@@ -116,5 +115,15 @@ gcloud run deploy deepseek-service \
     --cpu 4 \
     --allow-unauthenticated \
     --command "uvicorn src.main:app --host 0.0.0.0 --port $PORT"
+
+```
+
+## Running Tests
+
+Simply run pytest to run the unit & integration tests.
+
+```bash
+
+pytest
 
 ```
