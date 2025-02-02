@@ -78,6 +78,25 @@ Cloud Run offers several advantages for deploying AI inference APIs, especially 
    - Use Cloud Monitoring to track usage
    - Set up alerts for unusual patterns
 
+## Download the model During Build time rather than at runtime
+
+This approach:
+
+- Downloads model during build time
+- Caches the model in the image
+- Uses local files at runtime
+- No need for token at runtime
+- Faster container startup
+
+Benefits:
+
+- Faster cold starts
+- No runtime downloads
+- More reliable
+- Works in airgapped environments
+- Better for production
+- The tradeoff is a larger container image, but the runtime benefits usually outweigh this.
+
 ## Installation
 
 1. Clone or Fork the repository
@@ -105,11 +124,14 @@ uvicorn src.main:app --reload --port 8000
 ```bash
 
 # Build with Hugging Face token
-docker build -t deepseek-inference-api .
+docker build \
+  --build-arg HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN} \
+  -t deepseek-inference-api .
 
-# Run
+# Or directly with environment variable
 docker run \
   -p 8080:8080 \
+  -e HUGGINGFACE_TOKEN=$HUGGINGFACE_TOKEN \
   deepseek-inference-api
 
 ```
@@ -128,6 +150,7 @@ gcloud run deploy deepseek-service \
     --memory 16Gi \
     --cpu 4 \
     --allow-unauthenticated \
+    --set-env-vars="HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}" \
     --command "uvicorn src.main:app --host 0.0.0.0 --port $PORT"
 
 ```

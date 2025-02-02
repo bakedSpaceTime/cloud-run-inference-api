@@ -6,10 +6,12 @@ from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-# Only load dotenv if not in test environment
-if 'pytest' not in sys.modules:
+# Try to load from .env file if it exists, otherwise use environment variables
+try:
     from dotenv import load_dotenv
     load_dotenv()
+except ImportError:
+    pass  # Use environment variables directly
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,10 +49,11 @@ def load_model():
         
         try:
             logger.info("Loading model and tokenizer...")
-            tokenizer = AutoTokenizer.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
+            # Try to load from cache first
+            tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
             model = AutoModelForCausalLM.from_pretrained(
-                model_name, 
-                token=HUGGINGFACE_TOKEN,
+                model_name,
+                local_files_only=True,
                 torch_dtype=torch.float16
             )
             logger.info("Model loaded successfully!")
