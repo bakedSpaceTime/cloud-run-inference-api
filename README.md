@@ -1,5 +1,10 @@
 # DeepSeek Inference API
 
+![image](https://github.com/user-attachments/assets/19a41369-2346-4bc1-9b2f-bfec5e7fdc36)
+
+![image](https://github.com/user-attachments/assets/1d7f899e-e19e-43f5-8157-ea7c6c80dd41)
+
+
 ### Description
 
 A FastAPI-based service for running inference with DeepSeek language models. This API provides a simple interface for text generation using DeepSeek's 7B model.
