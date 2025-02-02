@@ -91,6 +91,9 @@ source venv/bin/activate
 # install dependencies
 pip install -r requirements.txt
 
+# run the FastAPI application (development)
+uvicorn src.main:app --reload --port 8000
+
 ```
 
 ### Deploy via the GCP CLI
@@ -106,6 +109,7 @@ gcloud run deploy deepseek-service \
     --gpu \
     --memory 16Gi \
     --cpu 4 \
-    --allow-unauthenticated
+    --allow-unauthenticated \
+    --command "uvicorn src.main:app --host 0.0.0.0 --port $PORT"
 
 ```
