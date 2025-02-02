@@ -100,6 +100,20 @@ uvicorn src.main:app --reload --port 8000
 
 ```
 
+## Running Docker
+
+```bash
+
+# Build with Hugging Face token
+docker build -t deepseek-inference-api .
+
+# Run
+docker run \
+  -p 8080:8080 \
+  deepseek-inference-api
+
+```
+
 ### Deploy via the GCP CLI
 
 Deploy to Google Cloud Run with GPU Support

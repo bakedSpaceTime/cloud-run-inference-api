@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
 logger.info("Starting application...")
 
 app = FastAPI()
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy"}
+
 # Get port from environment variable or use default
 PORT = int(os.environ.get("PORT", 8080))
 logger.info(f"Configured to listen on port {PORT}")
