@@ -1,31 +1,48 @@
+import sys
 import os
-from dotenv import load_dotenv
+import logging
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-
-# Load environment variables from .env file
+from dotenv import load_dotenv
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Log startup information
+logger.info("Starting application...")
 
 app = FastAPI()
 # Get port from environment variable or use default
-PORT = int(os.getenv("PORT", "8080"))
+PORT = int(os.environ.get("PORT", 8080))
+logger.info(f"Configured to listen on port {PORT}")
 # Default to "0.0.0.0" for Docker/Cloud Run, but allow override
 HOST = os.getenv("HOST", "0.0.0.0")
+
 
 # Ensure the model name is correct from Hugging Face
 model_name = "deepseek-ai/deepseek-r1-distill-qwen-7b"
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-if not auth_token:
+if not HUGGINGFACE_TOKEN:
     raise ValueError("HUGGINGFACE_TOKEN not found in environment variables")
 
-tokenizer = AutoTokenizer.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
-model = AutoModelForCausalLM.from_pretrained(
-    model_name, 
-    token=auth_token,
-    torch_dtype=torch.float16
-)
+try:
+    logger.info("Loading model and tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, 
+        token=HUGGINGFACE_TOKEN,
+        torch_dtype=torch.float16
+    )
+    logger.info("Model loaded successfully!")
+except Exception as e:
+    logger.error(f"Failed to load model: {str(e)}")
+    sys.exit(1)
+
+
 class InferenceRequest(BaseModel):
     prompt: str
     max_tokens: int = 512
@@ -39,6 +56,7 @@ async def inference(request: InferenceRequest):
 
 @app.get("/v1/sanity-check")
 async def sanity_check():
+    logger.info("Sanity check endpoint called")
     return {"response": "Sanity check passed!"}
 
 if __name__ == "__main__":

@@ -6,7 +6,8 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 COPY . .
 
-# Port will be provided by Cloud Run or can be overridden at runtime
+# Default port for documentation, actual port set by environment variable
 EXPOSE 8080
 
-CMD uvicorn src.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8080}
+# Use shell form to ensure environment variable expansion
+CMD uvicorn src.main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 75
