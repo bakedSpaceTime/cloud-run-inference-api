@@ -5,8 +5,11 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-from dotenv import load_dotenv
-load_dotenv()
+
+# Only load dotenv if not in test environment
+if 'pytest' not in sys.modules:
+    from dotenv import load_dotenv
+    load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,26 +25,32 @@ logger.info(f"Configured to listen on port {PORT}")
 # Default to "0.0.0.0" for Docker/Cloud Run, but allow override
 HOST = os.getenv("HOST", "0.0.0.0")
 
-
 # Ensure the model name is correct from Hugging Face
 model_name = "deepseek-ai/deepseek-r1-distill-qwen-7b"
-HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-if not HUGGINGFACE_TOKEN:
-    raise ValueError("HUGGINGFACE_TOKEN not found in environment variables")
+# Initialize these at module level but load them lazily
+tokenizer = None
+model = None
 
-try:
-    logger.info("Loading model and tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name, 
-        token=HUGGINGFACE_TOKEN,
-        torch_dtype=torch.float16
-    )
-    logger.info("Model loaded successfully!")
-except Exception as e:
-    logger.error(f"Failed to load model: {str(e)}")
-    sys.exit(1)
-
+def load_model():
+    """Load model and tokenizer if not already loaded"""
+    global tokenizer, model
+    if tokenizer is None or model is None:
+        HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+        if not HUGGINGFACE_TOKEN:
+            raise ValueError("HUGGINGFACE_TOKEN not found in environment variables")
+        
+        try:
+            logger.info("Loading model and tokenizer...")
+            tokenizer = AutoTokenizer.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                token=HUGGINGFACE_TOKEN,
+                torch_dtype=torch.float16
+            )
+            logger.info("Model loaded successfully!")
+        except Exception as e:
+            logger.error(f"Failed to load model: {str(e)}")
+            raise
 
 class InferenceRequest(BaseModel):
     prompt: str
@@ -49,6 +58,7 @@ class InferenceRequest(BaseModel):
     
 @app.post("/v1/inference")
 async def inference(request: InferenceRequest):
+    load_model()  # Ensure model is loaded
     inputs = tokenizer(request.prompt, return_tensors="pt").to(model.device)
     outputs = model.generate(inputs.input_ids, max_new_tokens=request.max_tokens)
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)

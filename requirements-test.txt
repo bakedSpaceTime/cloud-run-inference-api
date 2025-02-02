@@ -1,0 +1,6 @@
+pytest==7.4.4
+httpx==0.26.0
+pytest-asyncio==0.23.5
+python-dotenv==1.0.1
+fastapi
+uvicorn 
