@@ -92,3 +92,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 ```
+
+### Deploy via the GCP CLI
+
+Deploy to Google Cloud Run with GPU Support
+
+```bash
+
+gcloud run deploy deepseek-service \
+    --source . \
+    --region us-central1 \
+    --platform managed \
+    --gpu \
+    --memory 16Gi \
+    --cpu 4 \
+    --allow-unauthenticated
+
+```
