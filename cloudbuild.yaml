@@ -6,12 +6,12 @@ steps:
         "-t",
         "gcr.io/$PROJECT_ID/deepseek-cloud-run-inference-api",
         "--build-arg",
-        "HUGGINGFACE_TOKEN=$$_HUGGINGFACE_TOKEN",
+        "HUGGINGFACE_TOKEN=$$HUGGINGFACE_TOKEN",
         "-f",
         "Dockerfile", # Explicitly specify Dockerfile path
         ".", # Build context
       ]
-    secretEnv: ["_HUGGINGFACE_TOKEN"]
+    secretEnv: ["HUGGINGFACE_TOKEN"]
 
   # Push step
   - name: "gcr.io/cloud-builders/docker"
@@ -42,7 +42,7 @@ steps:
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/huggingface-token/versions/latest
-      env: "_HUGGINGFACE_TOKEN"
+      env: "HUGGINGFACE_TOKEN"
 
 # Image outputs
 images:
