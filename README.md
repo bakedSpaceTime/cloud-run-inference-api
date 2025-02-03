@@ -119,7 +119,7 @@ uvicorn src.main:app --reload --port 8000
 
 ```
 
-## Running Docker
+## Running Docker Locally
 
 ```bash
 # First, make sure you have your Hugging Face token set

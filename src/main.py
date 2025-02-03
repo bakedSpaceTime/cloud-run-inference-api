@@ -22,18 +22,13 @@ logger.info("Starting application...")
 
 app = FastAPI()
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint for Cloud Run"""
-    return {"status": "healthy"}
-
 # Get port from environment variable or use default
 PORT = int(os.environ.get("PORT", 8080))
 logger.info(f"Configured to listen on port {PORT}")
 # Default to "0.0.0.0" for Docker/Cloud Run, but allow override
 HOST = os.getenv("HOST", "0.0.0.0")
 
-# Ensure the model name is correct from Hugging Face
+# Ensure the model name is correct from Hugging Face or Vertex AI
 model_name = "deepseek-ai/deepseek-r1-distill-qwen-7b"
 # Initialize these at module level but load them lazily
 tokenizer = None
@@ -79,6 +74,12 @@ async def inference(request: InferenceRequest):
 async def sanity_check():
     logger.info("Sanity check endpoint called")
     return {"response": "Sanity check passed!"}
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy"}
+
 
 if __name__ == "__main__":
     import uvicorn
