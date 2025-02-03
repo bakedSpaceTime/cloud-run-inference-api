@@ -43,13 +43,9 @@ def load_model():
     """Load model and tokenizer if not already loaded"""
     global tokenizer, model
     if tokenizer is None or model is None:
-        HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-        if not HUGGINGFACE_TOKEN:
-            raise ValueError("HUGGINGFACE_TOKEN not found in environment variables")
-        
         try:
             logger.info("Loading model and tokenizer...")
-            # Try to load from cache first
+            # Load from cache (model should have been downloaded during build)
             tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,

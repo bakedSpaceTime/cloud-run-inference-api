@@ -3,6 +3,8 @@ FROM nvidia/cuda:12.0.0-base-ubuntu22.04 AS model-downloader
 
 # Define build argument for Hugging Face token
 ARG HUGGINGFACE_TOKEN
+# Fail the build if token is not provided
+RUN test -n "$HUGGINGFACE_TOKEN" || (echo "HUGGINGFACE_TOKEN must be provided" && false)
 
 # Install Python and pip
 RUN apt-get update && \
@@ -13,14 +15,14 @@ WORKDIR /model
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Download model using the provided token
+# Download model using the build argument
 RUN python3 -c "\
-    from transformers import AutoTokenizer, AutoModelForCausalLM; \
-    import os; \
-    model_name='deepseek-ai/deepseek-r1-distill-qwen-7b'; \
-    cache_dir='/model/cache'; \
-    AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir, token='${HUGGINGFACE_TOKEN}'); \
-    AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, token='${HUGGINGFACE_TOKEN}')"
+from transformers import AutoTokenizer, AutoModelForCausalLM; \
+import os; \
+model_name='deepseek-ai/deepseek-r1-distill-qwen-7b'; \
+cache_dir='/model/cache'; \
+AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir, token=\"${HUGGINGFACE_TOKEN}\"); \
+AutoModelForCausalLM.from_pretrained(model_name, cache_dir=cache_dir, token=\"${HUGGINGFACE_TOKEN}\")"
 
 # Stage 2: Final image
 FROM nvidia/cuda:12.0.0-base-ubuntu22.04

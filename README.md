@@ -122,26 +122,60 @@ uvicorn src.main:app --reload --port 8000
 ## Running Docker
 
 ```bash
+# First, make sure you have your Hugging Face token set
+export HUGGINGFACE_TOKEN="your_huggingface_token_here"
+
+# Verify the token is set
+echo $HUGGINGFACE_TOKEN
 
 # Build with Hugging Face token
 docker build \
   --build-arg HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN} \
   -t deepseek-inference-api .
 
-# Or directly with environment variable
+# Run the container
 docker run \
   -p 8080:8080 \
-  -e HUGGINGFACE_TOKEN=$HUGGINGFACE_TOKEN \
   deepseek-inference-api
-
 ```
+
+Note: Make sure to replace "your_huggingface_token_here" with your actual Hugging Face token. You can get your token from https://huggingface.co/settings/tokens
 
 ### Deploy via the GCP CLI
 
-Deploy to Google Cloud Run with GPU Support
+First, store your Hugging Face token in Secret Manager:
 
 ```bash
+# Create a secret in Secret Manager
+echo -n "${HUGGINGFACE_TOKEN}" | \
+  gcloud secrets create huggingface-token \
+  --data-file=- \
+  --replication-policy="automatic"
+```
 
+Then deploy using one of these two methods:
+
+#### Option 1: Using Cloud Build directly
+
+```bash
+# Build the image using Cloud Build with the secret
+gcloud builds submit --config cloudbuild.yaml \
+  --substitutions=_HUGGINGFACE_TOKEN=$(gcloud secrets versions access latest --secret="huggingface-token")
+
+# Then deploy the built image to Cloud Run
+gcloud run deploy deepseek-service \
+    --image gcr.io/$PROJECT_ID/deepseek-inference-api \
+    --region us-central1 \
+    --platform managed \
+    --gpu \
+    --memory 16Gi \
+    --cpu 4 \
+    --allow-unauthenticated
+```
+
+#### Option 2: Using gcloud run deploy with source
+
+```bash
 gcloud run deploy deepseek-service \
     --source . \
     --region us-central1 \
@@ -149,10 +183,20 @@ gcloud run deploy deepseek-service \
     --gpu \
     --memory 16Gi \
     --cpu 4 \
-    --allow-unauthenticated \
-    --set-env-vars="HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}" \
-    --command "uvicorn src.main:app --host 0.0.0.0 --port $PORT"
+    --allow-unauthenticated
+```
 
+Note: Make sure your Cloud Build service account has access to Secret Manager by granting it the "Secret Manager Secret Accessor" role:
+
+```bash
+# Get your Cloud Build service account
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+CLOUD_BUILD_SA="$PROJECT_NUMBER@cloudbuild.gserviceaccount.com"
+
+# Grant Secret Manager access
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$CLOUD_BUILD_SA" \
+    --role="roles/secretmanager.secretAccessor"
 ```
 
 ## Running Tests
