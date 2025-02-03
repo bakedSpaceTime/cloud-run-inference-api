@@ -122,45 +122,22 @@ uvicorn src.main:app --reload --port 8000
 ## Running Docker Locally
 
 ```bash
-# First, make sure you have your Hugging Face token set
-export HUGGINGFACE_TOKEN="your_huggingface_token_here"
 
-# Verify the token is set
-echo $HUGGINGFACE_TOKEN
 
 # Build with Hugging Face token
-docker build \
-  --build-arg HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN} \
-  -t deepseek-inference-api .
+docker build -t deepseek-inference-api .
 
 # Run the container
-docker run \
-  -p 8080:8080 \
-  deepseek-inference-api
+docker run deepseek-inference-api
 ```
 
-Note: Make sure to replace "your_huggingface_token_here" with your actual Hugging Face token. You can get your token from https://huggingface.co/settings/tokens
-
-### Deploy via the GCP CLI
-
-First, store your Hugging Face token in Secret Manager:
-
-```bash
-# Create a secret in Secret Manager
-echo -n "${HUGGINGFACE_TOKEN}" | \
-  gcloud secrets create huggingface-token \
-  --data-file=- \
-  --replication-policy="automatic"
-```
-
-Then deploy using one of these two methods:
+deploy using one of these two methods:
 
 #### Option 1: Using Cloud Build directly
 
 ```bash
-# Build the image using Cloud Build with the secret
-gcloud builds submit --config cloudbuild.yaml \
-  --substitutions=_HUGGINGFACE_TOKEN=$(gcloud secrets versions access latest --secret="huggingface-token")
+# Build the image using Cloud Build
+gcloud builds submit --config cloudbuild.yaml
 
 # Then deploy the built image to Cloud Run
 gcloud run deploy deepseek-service \
@@ -186,18 +163,13 @@ gcloud run deploy deepseek-service \
     --allow-unauthenticated
 ```
 
-Note: Make sure your Cloud Build service account has access to Secret Manager by granting it the "Secret Manager Secret Accessor" role:
+#### Option 3: ClickOps with Cloud Run
 
-```bash
-# Get your Cloud Build service account
-PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
-CLOUD_BUILD_SA="$PROJECT_NUMBER@cloudbuild.gserviceaccount.com"
-
-# Grant Secret Manager access
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$CLOUD_BUILD_SA" \
-    --role="roles/secretmanager.secretAccessor"
-```
+1. Simply go to Cloud Run on the GCP UI
+2. Create a new Cloud Run Service
+3. Connect to Cloud Build and to the Github Service associated with this code
+4. Deploy with the Dockerfile
+5. Ensure the Cloud Run Service has the same recommended config for serverless GPU
 
 ## Running Tests
 
