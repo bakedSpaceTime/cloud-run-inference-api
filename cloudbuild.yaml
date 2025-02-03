@@ -43,4 +43,8 @@ images:
 # Build options
 options:
   machineType: "E2_HIGHCPU_8"
+  diskSizeGb: 200 # Increased disk space otherwise the model built on cloud build exceeds default space
   logging: "CLOUD_LOGGING_ONLY"
+  env:
+    - "HF_HUB_ENABLE_HF_TRANSFER=1" # Enable faster downloads
+    - "HF_HUB_DISABLE_PROGRESS_BARS=1" # Reduce log noise

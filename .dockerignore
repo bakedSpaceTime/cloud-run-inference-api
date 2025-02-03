@@ -1,0 +1,16 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.env
+venv
+*.egg-info
+dist
+build
+.coverage
+htmlcov
+.ipynb_checkpoints
+*.ipynb
+.vscode 
