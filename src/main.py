@@ -9,6 +9,7 @@ import torch
 # Try to load from .env file if it exists, otherwise use environment variables
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # Use environment variables directly
@@ -34,6 +35,7 @@ model_path = "/app/hf/models/deepseek-r1-distill-qwen-7b"
 tokenizer = None
 model = None
 
+
 def load_model():
     """Load model and tokenizer if not already loaded"""
     global tokenizer, model
@@ -50,10 +52,12 @@ def load_model():
             logger.error(f"Failed to load model: {str(e)}")
             raise
 
+
 class InferenceRequest(BaseModel):
     prompt: str
     max_tokens: int = 512
-    
+
+
 @app.post("/v1/inference")
 async def inference(request: InferenceRequest):
     try:
@@ -66,12 +70,16 @@ async def inference(request: InferenceRequest):
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.error(f"Inference failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate response: {str(e)}"
+        )
+
 
 @app.get("/v1/sanity-check")
 async def sanity_check():
     logger.info("Sanity check endpoint called")
     return {"response": "Sanity check passed!"}
+
 
 @app.get("/health")
 async def health_check():
@@ -81,4 +89,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host=HOST, port=PORT)
