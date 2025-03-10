@@ -29,7 +29,7 @@ logger.info(f"Configured to listen on port {PORT}")
 HOST = os.getenv("HOST", "0.0.0.0")
 
 # Ensure the model name is correct from Hugging Face or Vertex AI
-model_name = "deepseek-ai/deepseek-r1-distill-qwen-7b"
+model_path = "/app/hf/models/deepseek-r1-distill-qwen-7b"
 # Initialize these at module level but load them lazily
 tokenizer = None
 model = None
@@ -41,11 +41,9 @@ def load_model():
         try:
             logger.info("Loading model and tokenizer...")
             # Load from cache (model should have been downloaded during build)
-            tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+            tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
             model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                local_files_only=True,
-                torch_dtype=torch.float16
+                model_path, local_files_only=True, torch_dtype=torch.float16
             )
             logger.info("Model loaded successfully!")
         except Exception as e:

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   inference-api:
@@ -20,7 +20,7 @@ services:
               capabilities: [gpu]
     restart: unless-stopped
     volumes:
-      - model-cache:/root/.cache/huggingface  # Cache Hugging Face models
+      - model-cache:/app/hf # Cache Hugging Face models
 
 volumes:
-  model-cache:  # Persistent volume for model cache
+  model-cache: # Persistent volume for model cache
