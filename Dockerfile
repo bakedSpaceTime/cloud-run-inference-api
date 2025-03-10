@@ -7,6 +7,9 @@ ENV HF_TOKEN=${HF_TOKEN}
 WORKDIR /app
 COPY . .
 
+# Make entrypoint.sh executable
+RUN chmod +x entrypoint.sh
+
 # Install requirements
 RUN pip3 install --no-cache-dir -r requirements.txt
 
