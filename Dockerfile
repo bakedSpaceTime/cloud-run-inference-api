@@ -1,20 +1,12 @@
-FROM us-docker.pkg.dev/deeplearning-platform-release/gcr.io/huggingface-text-generation-inference-cu121.2-2.ubuntu2204.py310
+FROM ollama/ollama
+ENV HOME /root
+WORKDIR /
+RUN ollama serve & sleep 10 && ollama pull gemma:2b
+# RUN ollama serve & sleep 10 && ollama pull deepseek-r1:32b
+# RUN ollama serve & sleep 10 && ollama pull phi4
+# RUN ollama serve & sleep 10 && ollama pull llama3.1
+# RUN ollama serve & sleep 10 && ollama pull qwen2.5-coder:32b
+# RUN ollama serve & sleep 10 && ollama pull mistral
+# RUN ollama serve & sleep 10 && ollama pull nomic-embed-text
+ENTRYPOINT ["ollama","serve"]
 
-# Accept HF_TOKEN as a build argument
-ARG HF_TOKEN
-ENV HF_TOKEN=${HF_TOKEN}
-
-WORKDIR /app
-COPY . .
-
-# Make entrypoint.sh executable
-RUN chmod +x entrypoint.sh
-
-# Install requirements
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-# Download the depseek model using huggingface-cli
-RUN huggingface-cli download deepseek-ai/deepseek-r1-distill-qwen-7b --local-dir /app/hf/models/deepseek-r1-distill-qwen-7b --cache-dir /app/hf/cache
-
-EXPOSE 8080
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
